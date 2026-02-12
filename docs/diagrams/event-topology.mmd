@@ -1,0 +1,6 @@
+flowchart TD
+  EX[domain.events (topic exchange)]
+  OS[order-service] -->|order.*| EX
+  IS[inventory-service] -->|inventory.*| EX
+  EX -->|order.*| QI[inventory.q] --> IS
+  EX -->|#| QN[notification.q] --> NS[notification-service]

@@ -1,0 +1,19 @@
+sequenceDiagram
+  autonumber
+  participant UI as Angular UI
+  participant GW as Gateway
+  participant OS as Order Service
+  participant MQ as RabbitMQ
+  participant IS as Inventory Service
+  participant NS as Notification Service
+
+  UI->>GW: POST /api/proxy/orders (JWT)
+  GW->>OS: POST /api/orders
+  OS-->>GW: 201 CREATED
+  OS->>MQ: publish order.created
+
+  MQ-->>IS: deliver order.created
+  IS->>MQ: publish inventory.reserved or inventory.rejected
+
+  MQ-->>NS: deliver events
+  NS-->>NS: store notifications

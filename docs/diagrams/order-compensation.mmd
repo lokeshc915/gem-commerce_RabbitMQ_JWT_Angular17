@@ -1,0 +1,17 @@
+sequenceDiagram
+  autonumber
+  participant UI as Angular UI
+  participant GW as Gateway
+  participant OS as Order Service
+  participant MQ as RabbitMQ
+  participant IS as Inventory Service
+
+  UI->>GW: POST /api/proxy/orders
+  GW->>OS: create order
+  OS->>MQ: order.created
+  MQ-->>IS: order.created
+  IS->>MQ: inventory.rejected(out_of_stock)
+
+  UI->>GW: POST /api/proxy/orders/{id}/cancel
+  GW->>OS: cancel
+  OS-->>UI: CANCELLED

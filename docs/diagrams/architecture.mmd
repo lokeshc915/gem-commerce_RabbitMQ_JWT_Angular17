@@ -1,0 +1,19 @@
+flowchart LR
+  U[User] --> UI[Angular 17 UI :4200]
+  UI -->|REST + JWT| GW[gateway-service :8080]
+
+  GW -->|REST + JWT| OS[order-service :8081]
+  GW -->|REST + JWT| IS[inventory-service :8082]
+  GW -->|REST + JWT| PS[product-service :8083]
+  GW -->|REST + JWT| NS[notification-service :8084]
+
+  subgraph MQ[RabbitMQ :5672]
+    EX[Exchange: domain.events]
+    QI[Queue: inventory.q]
+    QN[Queue: notification.q]
+  end
+
+  OS -->|order.created| EX
+  IS -->|inventory.reserved / inventory.rejected| EX
+  EX --> QI --> IS
+  EX --> QN --> NS
