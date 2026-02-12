@@ -50,3 +50,102 @@ See `docs/diagrams/*.mmd` (Mermaid):
 - order happy-path sequence
 - order compensation sequence
 - UI navigation flow
+
+
+##  Architecture Diagram
+flowchart LR
+  U[User] --> UI[Angular 17 UI :4200]
+  UI -->|REST + JWT| GW[gateway-service :8080]
+
+  GW -->|REST + JWT| OS[order-service :8081]
+  GW -->|REST + JWT| IS[inventory-service :8082]
+  GW -->|REST + JWT| PS[product-service :8083]
+  GW -->|REST + JWT| NS[notification-service :8084]
+
+  subgraph MQ[RabbitMQ :5672]
+    EX[Exchange: domain.events]
+    QI[Queue: inventory.q]
+    QN[Queue: notification.q]
+  end
+
+  OS -->|order.created| EX
+  IS -->|inventory.reserved / inventory.rejected| EX
+  EX --> QI --> IS
+  EX --> QN --> NS
+  
+
+
+
+##  Event topology Diagram
+flowchart LR
+  U[User] --> UI[Angular 17 UI :4200]
+  UI -->|REST + JWT| GW[gateway-service :8080]
+
+  GW -->|REST + JWT| OS[order-service :8081]
+  GW -->|REST + JWT| IS[inventory-service :8082]
+  GW -->|REST + JWT| PS[product-service :8083]
+  GW -->|REST + JWT| NS[notification-service :8084]
+
+  subgraph MQ[RabbitMQ :5672]
+    EX[Exchange: domain.events]
+    QI[Queue: inventory.q]
+    QN[Queue: notification.q]
+  end
+
+  OS -->|order.created| EX
+  IS -->|inventory.reserved / inventory.rejected| EX
+  EX --> QI --> IS
+  EX --> QN --> NS
+  
+  
+ ## order compensation sequence Diagram
+ sequenceDiagram
+ 
+  autonumber
+  participant UI as Angular UI
+  participant GW as Gateway
+  participant OS as Order Service
+  participant MQ as RabbitMQ
+  participant IS as Inventory Service
+
+  UI->>GW: POST /api/proxy/orders
+  GW->>OS: create order
+  OS->>MQ: order.created
+  MQ-->>IS: order.created
+  IS->>MQ: inventory.rejected(out_of_stock)
+
+  UI->>GW: POST /api/proxy/orders/{id}/cancel
+  GW->>OS: cancel
+  OS-->>UI: CANCELLED
+  
+  
+ ## order-happy-path sequence Diagram
+sequenceDiagram
+  autonumber
+  participant UI as Angular UI
+  participant GW as Gateway
+  participant OS as Order Service
+  participant MQ as RabbitMQ
+  participant IS as Inventory Service
+  participant NS as Notification Service
+
+  UI->>GW: POST /api/proxy/orders JWT
+  GW->>OS: POST /api/orders
+  OS-->>GW: 201 CREATED
+  OS->>MQ: publish order.created
+
+  MQ-->>IS: deliver order.created
+  IS->>MQ: publish inventory.reserved or inventory.rejected
+
+  MQ-->>NS: deliver events
+  NS-->>NS: store notifications
+  
+  
+ ## UI NAVIGATION
+flowchart TD
+  L[Login] --> S[Shell-Layout]
+  S --> O[Orders List]
+  O --> OD[Order Detail -Resolver]
+  S --> I[Inventory]
+  S --> P[Products]
+  S --> N[Notifications]
