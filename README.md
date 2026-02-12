@@ -53,6 +53,7 @@ See `docs/diagrams/*.mmd` (Mermaid):
 
 
 ##  Architecture Diagram
+```mermaid
 flowchart LR
   U[User] --> UI[Angular 17 UI :4200]
   UI -->|REST + JWT| GW[gateway-service :8080]
@@ -72,11 +73,12 @@ flowchart LR
   IS -->|inventory.reserved / inventory.rejected| EX
   EX --> QI --> IS
   EX --> QN --> NS
-  
+ ``` 
 
 
 
 ##  Event topology Diagram
+```mermaid
 flowchart LR
   U[User] --> UI[Angular 17 UI :4200]
   UI -->|REST + JWT| GW[gateway-service :8080]
@@ -96,9 +98,10 @@ flowchart LR
   IS -->|inventory.reserved / inventory.rejected| EX
   EX --> QI --> IS
   EX --> QN --> NS
-  
+ ``` 
   
  ## order compensation sequence Diagram
+ ```mermaid
  sequenceDiagram
  
   autonumber
@@ -117,9 +120,10 @@ flowchart LR
   UI->>GW: POST /api/proxy/orders/{id}/cancel
   GW->>OS: cancel
   OS-->>UI: CANCELLED
-  
+   ``` 
   
  ## order-happy-path sequence Diagram
+ ```mermaid
 sequenceDiagram
   autonumber
   participant UI as Angular UI
@@ -139,9 +143,10 @@ sequenceDiagram
 
   MQ-->>NS: deliver events
   NS-->>NS: store notifications
-  
+   ``` 
   
  ## UI NAVIGATION
+ ```mermaid
 flowchart TD
   L[Login] --> S[Shell-Layout]
   S --> O[Orders List]
@@ -149,3 +154,4 @@ flowchart TD
   S --> I[Inventory]
   S --> P[Products]
   S --> N[Notifications]
+   ``` 
